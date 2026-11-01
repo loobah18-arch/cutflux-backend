@@ -2,6 +2,7 @@
 """
 Cutflux Cloud Video Engine — High-Energy Beat-Synced 9:16 AMV Renderer
 Designed to run on GitHub Actions cloud runner with zero phone load.
+Enforces minimum 30+ seconds duration.
 """
 
 import os
@@ -28,27 +29,55 @@ def main():
         print(f"[Error] Audio track {audio_path} not found")
         sys.exit(1)
 
+    # Cutflux template timing sequence: minimum 30 seconds duration
+    # 14 distinct action cuts across S02E17 (Sukuna vs Mahoraga), S02E16 (Sukuna vs Jogo), and S02E04 (Gojo vs Toji)
+    beat_durations = [
+        3.20,  # 01. Hook setup shot
+        2.10,  # 02. First beat drop
+        2.10,  # 03. Rhythm cut
+        2.20,  # 04. Punch zoom cut
+        2.10,  # 05. Combat slice
+        2.30,  # 06. Mahoraga wheel spin
+        2.10,  # 07. Sukuna domain expansion
+        2.10,  # 08. Rapid brawl
+        2.40,  # 09. Fire arrow buildup
+        2.10,  # 10. Jogo meteor clash
+        2.10,  # 11. Flame explosion
+        2.20,  # 12. Gojo awakening
+        2.30,  # 13. Toji spear charge
+        3.50   # 14. Climax finisher + fade
+    ]
+
+    # Ensure total duration is at least 30.0 seconds
+    if len(clips) < len(beat_durations):
+        # Repeat clips if fewer than required
+        extended_clips = []
+        while len(extended_clips) < len(beat_durations):
+            extended_clips.extend(clips)
+        clips = extended_clips[:len(beat_durations)]
+    else:
+        clips = clips[:len(beat_durations)]
+
+    total_target_dur = sum(beat_durations[:len(clips)])
+
     print(f"==> Found {len(clips)} source clips from DCIM/MovieBox")
     print(f"==> Phonk BGM: {audio_path.name}")
     print(f"==> Target Output: {output_file}")
+    print(f"==> Planned Duration: {total_target_dur:.2f}s (Guaranteed >= 30.0s)")
 
-    # Cutflux template timing specifications
-    # Cut duration sequence in seconds (matching high-octane 110-128 BPM phonk beats)
-    beat_durations = [3.20, 1.90, 1.90, 1.90, 3.80]
-    total_target_dur = sum(beat_durations[:len(clips)])
-
-    # Step 1: Normalize and format each clip to 1080x1920 9:16 with adaptive dual-layer zoom
-    processed_clips = []
     tmp_dir = base_dir / "tmp_render"
     tmp_dir.mkdir(parents=True, exist_ok=True)
 
+    # Step 1: Normalize and format each clip to 1080x1920 9:16 with adaptive dual-layer zoom
+    processed_clips = []
+
     for i, clip in enumerate(clips):
-        dur = beat_durations[i % len(beat_durations)]
+        dur = beat_durations[i]
         out_clip = tmp_dir / f"norm_{i:02d}.mp4"
         
         # Dual-layer anime framing: blurred 9:16 background + sharp scale-punch foreground
-        # Alternating zoom punches on cuts (1.15x / 1.30x)
-        zoom = 1.25 if (i % 2 == 1) else 1.10
+        # Alternating zoom punches on cuts (1.10x / 1.25x / 1.35x)
+        zoom = 1.30 if (i % 3 == 0) else (1.18 if (i % 2 == 0) else 1.08)
         vf_filter = (
             f"[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=20:5[bg];"
             f"[0:v]scale=1080:1920:force_original_aspect_ratio=decrease,scale=iw*{zoom}:ih*{zoom}[fg];"
@@ -96,7 +125,7 @@ def main():
     af_filter = (
         f"volume=1.05,"
         f"loudnorm=I=-14:LRA=7:tp=-1.0,"
-        f"afade=t=out:st={total_target_dur - 1.5}:d=1.5"
+        f"afade=t=out:st={total_target_dur - 2.0}:d=2.0"
     )
 
     cmd_master = [
