@@ -1,0 +1,40 @@
+name: Cutflux Cloud Video Render Pipeline
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  cloud_render:
+    name: Render 1080x1920 Phonk AMV Short
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install System FFmpeg
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y --no-install-recommends ffmpeg
+
+      - name: Execute Cloud AMV Rendering
+        run: |
+          python3 render_cloud_amv.py
+
+      - name: Upload Output Video Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cutflux-rendered-video
+          path: output/*.mp4
+          retention-days: 14
