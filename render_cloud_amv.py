@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Cutflux Cloud Video Engine — High-Energy Beat-Synced 9:16 AMV Renderer
+Cutflux Cloud Video Engine — Demon Slayer Beat-Synced 9:16 AMV Renderer
 Designed to run on GitHub Actions cloud runner with zero phone load.
 Enforces minimum 30+ seconds duration.
 """
@@ -18,7 +18,7 @@ def main():
     audio_path = base_dir / "assets" / "audio" / "montagem_zora.mp3"
     output_dir = base_dir / "output"
     output_dir.mkdir(parents=True, exist_ok=True)
-    output_file = output_dir / "cutflux_jjk_montagem_zora.mp4"
+    output_file = output_dir / "cutflux_demonslayer_montagem_zora.mp4"
 
     clips = sorted(list(clips_dir.glob("*.mp4")))
     if not clips:
@@ -30,27 +30,26 @@ def main():
         sys.exit(1)
 
     # Cutflux template timing sequence: minimum 30 seconds duration
-    # 14 distinct action cuts across S02E17 (Sukuna vs Mahoraga), S02E16 (Sukuna vs Jogo), and S02E04 (Gojo vs Toji)
+    # 14 distinct action cuts across Demon Slayer sakuga (Tanjiro Hinokami Kagura, Rui clash, Inosuke Beast Breathing)
     beat_durations = [
         3.20,  # 01. Hook setup shot
-        2.10,  # 02. First beat drop
-        2.10,  # 03. Rhythm cut
-        2.20,  # 04. Punch zoom cut
-        2.10,  # 05. Combat slice
-        2.30,  # 06. Mahoraga wheel spin
-        2.10,  # 07. Sukuna domain expansion
-        2.10,  # 08. Rapid brawl
-        2.40,  # 09. Fire arrow buildup
-        2.10,  # 10. Jogo meteor clash
-        2.10,  # 11. Flame explosion
-        2.20,  # 12. Gojo awakening
-        2.30,  # 13. Toji spear charge
-        3.50   # 14. Climax finisher + fade
+        2.10,  # 02. First beat drop impact
+        2.10,  # 03. Rhythm fire slash
+        2.20,  # 04. Punch zoom rotation
+        2.10,  # 05. Hinokami Kagura dragon
+        2.30,  # 06. Sun breathing acceleration
+        2.10,  # 07. Water breathing 10th form
+        2.10,  # 08. Rapid blade combo
+        2.40,  # 09. Dance of the fire god peak
+        2.10,  # 10. Thread severance
+        2.10,  # 11. Beast breathing dual slash
+        2.20,  # 12. Spatial awareness blitz
+        2.30,  # 13. High-velocity lunge
+        3.50   # 14. Climax finisher + fadeout
     ]
 
     # Ensure total duration is at least 30.0 seconds
     if len(clips) < len(beat_durations):
-        # Repeat clips if fewer than required
         extended_clips = []
         while len(extended_clips) < len(beat_durations):
             extended_clips.extend(clips)
@@ -60,7 +59,7 @@ def main():
 
     total_target_dur = sum(beat_durations[:len(clips)])
 
-    print(f"==> Found {len(clips)} source clips from DCIM/MovieBox")
+    print(f"==> Found {len(clips)} Demon Slayer source clips")
     print(f"==> Phonk BGM: {audio_path.name}")
     print(f"==> Target Output: {output_file}")
     print(f"==> Planned Duration: {total_target_dur:.2f}s (Guaranteed >= 30.0s)")
@@ -77,12 +76,12 @@ def main():
         
         # Dual-layer anime framing: blurred 9:16 background + sharp scale-punch foreground
         # Alternating zoom punches on cuts (1.10x / 1.25x / 1.35x)
-        zoom = 1.30 if (i % 3 == 0) else (1.18 if (i % 2 == 0) else 1.08)
+        zoom = 1.32 if (i % 3 == 0) else (1.18 if (i % 2 == 0) else 1.08)
         vf_filter = (
             f"[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=20:5[bg];"
             f"[0:v]scale=1080:1920:force_original_aspect_ratio=decrease,scale=iw*{zoom}:ih*{zoom}[fg];"
             f"[bg][fg]overlay=(W-w)/2:(H-h)/2:shortest=1,"
-            f"eq=contrast=1.12:saturation=1.35:brightness=0.04,"
+            f"eq=contrast=1.14:saturation=1.40:brightness=0.04,"
             f"format=yuv420p"
         )
 
@@ -121,7 +120,7 @@ def main():
     subprocess.run(cmd_concat, check=True)
 
     # Step 3: Mix with Montagem Zora phonk audio, ducking curve and loud sub-bass master
-    print("--> Muxing Montagem Zora phonk audio and finalizing master 1080x1920 Short...")
+    print("--> Muxing Montagem Zora phonk audio and finalizing master 1080x1920 Demon Slayer Short...")
     af_filter = (
         f"volume=1.05,"
         f"loudnorm=I=-14:LRA=7:tp=-1.0,"
@@ -143,7 +142,7 @@ def main():
     subprocess.run(cmd_master, check=True)
 
     file_size_mb = output_file.stat().st_size / (1024 * 1024)
-    print(f"\n[SUCCESS] Rendered Short: {output_file} ({file_size_mb:.2f} MB, {total_target_dur:.1f}s, 1080x1920)")
+    print(f"\n[SUCCESS] Rendered Demon Slayer Short: {output_file} ({file_size_mb:.2f} MB, {total_target_dur:.1f}s, 1080x1920)")
 
 if __name__ == "__main__":
     main()
