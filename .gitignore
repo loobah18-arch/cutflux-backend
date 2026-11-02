@@ -7,3 +7,5 @@ yarn-error.log*
 output/
 tmp_render/
 raw_episodes/
+__pycache__/
+*.pyc
